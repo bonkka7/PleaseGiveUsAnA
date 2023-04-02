@@ -1,0 +1,83 @@
+.App {
+ width: 100vw;
+ height: 100vh;
+}
+
+body{
+  margin: 0;
+  padding: 0;
+}
+
+.Sidebar{
+  height: 700px;
+  width: 25%;
+  background-color: #2F4050;
+}
+
+.SidebarList{
+  height: auto;
+  padding: 0;
+  width: 100%;
+}
+
+.SidebarList .row{
+width: auto;
+height: 65px;
+list-style-type: none;
+margin: 0%;
+display: flex;
+flex-direction: row;
+color: white;
+justify-content: center;
+align-items: center; 
+}
+
+.SidebarList .row:hover {
+  cursor: pointer;
+  background-color: #293846;
+}
+
+.SidebarList #active {
+  background-color: #293846;
+}
+
+.row #title{
+  place-items: center;
+}
+
+.Timer {
+  position: absolute;
+  bottom: 0;
+  height: 15%;
+  width: 25%;
+  text-align: center;
+  background-color: #2F4050;
+  color: white;
+}
+
+.Searchbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center; 
+}
+
+.search-bar-container {
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-filter-container {
+  width: auto;
+  display: flex;
+  align-items: center;
+}
+
+.filter-button {
+  width: auto;
+  background-color: grey;
+  color: white;
+  border: none;
+  border-color: aliceblue;
+}
