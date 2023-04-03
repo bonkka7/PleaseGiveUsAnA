@@ -7,7 +7,7 @@ public class Reservation{
 
     public static void main(String[] args){
         try{
-            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "pleaseguaa", "756337");
+            reservationConn = DriverManager.getConnection("jdbc:mysql://128.153.184.215:3306/pguaa", "pleaseguaa", "756337");
             System.out.println("good");
             reservationConn.close();
         }catch(SQLException e){
