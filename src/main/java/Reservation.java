@@ -6,8 +6,8 @@ public class Reservation{
     static Connection reservationConn = null;
 
     public static void main(String[] args){
-        try{
-            reservationConn = DriverManager.getConnection("jdbc:mysql://128.153.184.215:3306/pguaa", "pleaseguaa", "756337");
+        try{ //128.153.176.208
+            reservationConn = DriverManager.getConnection("jdbc:mysql://128.153.176.208:3306/pguaa", "pleaseguaa", "756337");
             System.out.println("good");
             reservationConn.close();
         }catch(SQLException e){
@@ -39,7 +39,7 @@ public class Reservation{
         add.execute(tbl);//recipe table
         tbl = "CREATE TABLE " + user + "Utensils(recipeID int, utensil VARCHAR(32), FOREIGN KEY(recipeID) REFERENCES " + user + "Recipe(ID) ON DELETE CASCADE)";
         add.execute(tbl);//utensils table
-        tbl = "CREATE TABLE " + user + "Ingredients(recipeID int, ingredients VARCHAR(32), FOREIGN KEY(recipeID) REFERENCES " + user + "Recipe(ID) ON DELETE CASCADE)";
+        tbl = "CREATE TABLE " + user + "Ingredients(recipeID int, ingredients VARCHAR(32), amount int, measurement VARCHAR(8), FOREIGN KEY(recipeID) REFERENCES " + user + "Recipe(ID) ON DELETE CASCADE)";
         add.execute(tbl);//ingredients table
         tbl = "CREATE TABLE " + user + "Review(recipeID int, rating int, review TEXT, FOREIGN KEY(recipeID) REFERENCES " + user + "Recipe(ID) ON DELETE CASCADE)";
         add.execute(tbl);
