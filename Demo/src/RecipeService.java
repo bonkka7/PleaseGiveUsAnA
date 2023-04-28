@@ -8,9 +8,11 @@ import java.util.Optional;
 //Allows creation and editing of Recipe entities through RecipeRepository
 public class RecipeService {
 
+    //Connects to recipeRepository
     @Autowired
     private RecipeRepository recipeRepository;
 
+    //Formats HTTP requests into function calls
     public List<Recipe> getAllRecipes() {
         return recipeRepository.findAll();
     }

@@ -4,6 +4,7 @@ public class Reservation{
     private String user;
     private int idx;
     static Connection reservationConn = null;
+    //Possibly connecting to front end through here - local hosting on spring boot
 
     public static void main(String[] args){
         try{

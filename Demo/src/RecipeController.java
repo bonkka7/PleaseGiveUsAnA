@@ -12,25 +12,26 @@ import java.util.Optional;
 //Handles HTTP Requests for Recipe
 public class RecipeController {
 
+    //Calls recipeService to execute commands
     @Autowired
     private RecipeService recipeService;
 
-    @GetMapping
+    @GetMapping("/allRecipes")
     public List<Recipe> getAllRecipes() {
         return recipeService.getAllRecipes();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/returnRecipe")
     public Optional<Recipe> getRecipe(@PathVariable Long id) {
         return recipeService.getRecipe(id);
     }
 
-    @PostMapping
+    @PostMapping("/storeRecipe")
     public Recipe saveRecipe(@RequestBody Recipe recipe) {
         return recipeService.saveRecipe(recipe);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete")
     public void deleteRecipe(@PathVariable Long id) {
         recipeService.deleteRecipe(id);
     }

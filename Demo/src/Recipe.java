@@ -125,4 +125,9 @@ public class Recipe {
                 ", description='" + description + '\'' +
                 '}';
     }
+
+    public static void main(String[] args){
+        Recipe burger = new Recipe("cheese", "fingers", "cheese", "eat", "instant", "all you want bby", "cheesepicture", "dinner");
+        System.out.println(burger.toString());
+    }
 }
