@@ -1,51 +1,289 @@
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class Reservation{
     private String user;
     private int idx;
     static Connection reservationConn = null;
 
-    public static void main(String[] args){
-        try{ //128.153.176.208
-            reservationConn = DriverManager.getConnection("jdbc:mysql://128.153.176.208:3306/pguaa", "pleaseguaa", "756337");
-            System.out.println("good");
-            reservationConn.close();
-        }catch(SQLException e){
-            System.out.println("Cannot connect to database: " + e.getMessage());
-        }
-
+    public int signIn() throws SQLException {
+        return signIn("Anon", "");
     }
-
     public int signIn(String user, String pass) throws SQLException {
-        String findUser = "SELECT password, idx FROM Users WHERE username = user";
-        Statement userFind = reservationConn.createStatement();
-        ResultSet res = userFind.executeQuery(findUser);
-        if(res.next()){
-            if(res.getString("password") == pass){
-                this.user = user;
-                this.idx = res.getInt("idx");
-                return 0; //signed in all good
+        try{
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            String findUser = "SELECT password, idx FROM Users WHERE username = '" + user + "'";
+            Statement userFind = reservationConn.createStatement();
+            ResultSet res = userFind.executeQuery(findUser);
+            if(res.next()){
+                if(Objects.equals(res.getString("password"), pass)){
+                    this.user = user;
+                    this.idx = res.getInt("idx");
+                    reservationConn.close();
+                    return 0; //signed in all good
+                }
+                reservationConn.close();
+                return 1; //wrong password
             }
-            return 1; //wrong password
+            reservationConn.close();
+            return 2; //username not found
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
         }
-        return 2; //username not found
+        return 3; //didn't connect
     }
 
     public int createUser(String user, String pass) throws SQLException {
         if(signIn(user,pass) != 2){return 1;} // username already used
-        Statement add = reservationConn.createStatement();
-        add.executeUpdate("INSERT INTO Users(username, password, idx) VALUES (user, pass, 0)");
-        String tbl = "CREATE TABLE " + user + "Recipe(ID int, name VARCHAR(64), description VARCHAR(150), picture VARCHAR(2000), meal CHAR(1), timeCook int, servings int, avgRate int, instructions TEXT, PRIMARY KEY(ID))";
-        add.execute(tbl);//recipe table
-        tbl = "CREATE TABLE " + user + "Utensils(recipeID int, utensil VARCHAR(32), FOREIGN KEY(recipeID) REFERENCES " + user + "Recipe(ID) ON DELETE CASCADE)";
-        add.execute(tbl);//utensils table
-        tbl = "CREATE TABLE " + user + "Ingredients(recipeID int, ingredients VARCHAR(32), amount int, measurement VARCHAR(8), FOREIGN KEY(recipeID) REFERENCES " + user + "Recipe(ID) ON DELETE CASCADE)";
-        add.execute(tbl);//ingredients table
-        tbl = "CREATE TABLE " + user + "Review(recipeID int, rating int, review TEXT, FOREIGN KEY(recipeID) REFERENCES " + user + "Recipe(ID) ON DELETE CASCADE)";
-        add.execute(tbl);
-        add.close();
-        return 0; //added fine
+        try{
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            Statement add = reservationConn.createStatement();
+            add.executeUpdate("INSERT INTO Users(username, password, idx) VALUES ('" + user + "', '" + pass + "', 0)");
+            add.close();
+            this.user = user;
+            this.idx = 0;
+            return 0; //added fine
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return 2;
+    }
+
+    public int addRecipe(String name, String descr, String pic, char meal, int time, int servings, String instr, List<String> ing, List<Integer> amount, List<String> measure, List<String> ut) throws SQLException {
+        try{
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            Statement add = reservationConn.createStatement();
+            String update = String.format("INSERT INTO Recipe(ID, user, name, description, picture, meal, timeCook, servings, avgRate, instructions) VALUES (%d, '%s', '%s', '%s', '%s', '%c', %d, %d, %d, '%s')", idx, user, name, descr, pic, meal, time, servings, 0, instr);
+            add.executeUpdate(update);
+            for(int x = 0; x < ing.size(); x++){
+                update = String.format("INSERT INTO Ingredients(recipeID, user, ingredients, amount, measurement) VALUES (%d, '%s', '%s', %d, '%s')", idx, user, ing.get(x), amount.get(x), measure.get(x));
+                add.executeUpdate(update);
+            }
+            for (String s : ut) {
+                update = String.format("INSERT INTO Utensils(recipeID, user, utensil) VALUES (%d, '%s', '%s')", idx, user, s);
+                add.executeUpdate(update);
+            }
+            idx++;
+            update = "UPDATE Users SET idx = " + idx + " WHERE username = '" + user + "'";
+            add.executeUpdate(update);
+            add.close();
+            return 0; //added fine
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return 1; //couldn't add
+    }
+
+    public int deleteRecipe(int recipeID){
+        try{
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            Statement add = reservationConn.createStatement();
+            String update = "DELETE FROM Recipe WHERE ID = " + recipeID + " AND user = '" + user + "'";
+            add.executeUpdate(update);
+            add.close();
+            reservationConn.close();
+            return 0;
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return 1;
+    }
+
+    //doesn't work
+    public int addReview(int id, int rate, String review){
+        try{
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            Statement add = reservationConn.createStatement();
+            String update = "INSERT INTO Review(recipeID, user, rating, review) VALUES (" + idx + ", '" + user + "', " + rate + ", '" + review + "')";
+            add.executeUpdate(update);
+            update = "SELECT rating FROM Review WHERE recipeID = " + id + " AND user = '" + user + "'";
+            int count = 0;
+            int sum = 0;
+            ResultSet res = add.executeQuery(update);
+            while (res.next()) {
+                sum += res.getInt("rating");
+                count++;
+            }
+            res.close();
+            sum = sum / count;
+            update = "UPDATE Recipe SET avgRate = " + sum + " WHERE recipeID = " + id + " AND user = '" + user + "'";
+            add.executeUpdate(update);
+            add.close();
+            reservationConn.close();
+            return 0;
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return 1;
+    }
+
+    public List<Recipe> nameSearch(String recipeName){
+        String statement = "SELECT * FROM Recipe WHERE name LIKE '%" + recipeName + "%'";
+        return search(statement);
+    }
+    public List<Recipe> userName(String recipeName){
+        List<Recipe> names = nameSearch(recipeName);
+        for(int i = 0; i < names.size(); i++){
+            if(names.get(i).getUser() != user){
+                names.remove(i);
+                i--;
+            }
+        }
+        return names;
+    }
+
+    public List<Recipe> userSearch(){
+        String statement = "SELECT * FROM Recipe WHERE user = '" + user + "'";
+        return search(statement);
+    }
+
+    public List<Recipe> ratingSearch(int rate){
+        String statement = "SELECT * FROM Recipe WHERE avgRate >= " + rate;
+        return search(statement);
+    }
+
+    public List<Recipe> userRating(int rating){
+        List<Recipe> names = ratingSearch(rating);
+        for(int i = 0; i < names.size(); i++){
+            if(names.get(i).getUser() != user){
+                names.remove(i);
+                i--;
+            }
+        }
+        return names;
+    }
+
+    public List<Recipe> mealSearch(char meal){
+        String statement = "SELECT * FROM Recipe WHERE meal = '" + meal + "'";
+        return search(statement);
+    }
+
+    public List<Recipe> userMeal(char meal){
+        List<Recipe> names = mealSearch(meal);
+        for(int i = 0; i < names.size(); i++){
+            if(names.get(i).getUser() != user){
+                names.remove(i);
+                i--;
+            }
+        }
+        return names;
+    }
+
+    public List<Recipe> search(String query){
+        List<Recipe> recipes = new ArrayList<>();
+        try {
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            Statement add = reservationConn.createStatement();
+            ResultSet res = add.executeQuery(query);
+            while (res.next()) {
+                int id = res.getInt("recipeID");
+                String user = res.getString("user");
+                String name = res.getString("name");
+                String descr = res.getString("description");
+                String pic = res.getString("picture");
+                char meal = res.getString("meal").charAt(0);
+                int time = res.getInt("timeCook");
+                int servings = res.getInt("servings");
+                int rate = res.getInt("avgRate");
+                String instr = res.getString("instructions");
+                Recipe recipe = new Recipe(id,user,name,descr,pic,meal,time,servings,rate,instr);
+                Statement ingstat = reservationConn.createStatement();
+                String statement = "SELECT * FROM Ingredient WHERE recipeID = " + id + " AND user = '" + user + "'";
+                ResultSet ingres = ingstat.executeQuery(statement);
+                while(ingres.next()) {
+                    String ing = ingres.getString("ingredients");
+                    String measurement = ingres.getString("measurement");
+                    int amount = ingres.getInt("amount");
+                    recipe.addIngredient(new Ingredient(ing, amount, measurement));
+                }
+                ingres.close();
+                statement = "SELECT * FROM Utensils WHERE recipeID = " + id + " AND user = '" + user + "'";
+                ResultSet utres = ingstat.executeQuery(statement);
+                while(utres.next()) {
+                    recipe.addUtensil(utres.getString("utensil"));
+                }
+                utres.close();
+                ingstat.close();
+                recipes.add(recipe);
+            }
+            reservationConn.close();
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+        return recipes;
+    }
+
+    public List<Recipe> ingredientSearch(List<String> ings){
+        List<Recipe> recipes = new ArrayList<>();
+        try {
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            Statement add = reservationConn.createStatement();
+            for (String ing : ings) {
+                String statement = "SELECT * FROM Ingredients WHERE ingredient LIKE '%" + ing + "%'";
+                ResultSet res = add.executeQuery(statement);
+                while (res.next()) {
+                    int id = res.getInt("recipeID");
+                    String user = res.getString("user");
+                    List<Recipe> moros = search("SELECT * FROM Recipe WHERE ID = " + id + " AND user = '" + user + "'");
+                    recipes.removeAll(moros);
+                    recipes.addAll(moros);
+                }
+                res.close();
+            }
+            add.close();
+            reservationConn.close();
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+        return recipes;
+    }
+
+    public List<Recipe> userIngredient(List<String> ings){
+        List<Recipe> names = ingredientSearch(ings);
+        for(int i = 0; i < names.size(); i++){
+            if(names.get(i).getUser() != user){
+                names.remove(i);
+                i--;
+            }
+        }
+        return names;
+    }
+
+    public List<Recipe> allergenSearch(List<String> allergen){
+        List<Recipe> with = ingredientSearch(allergen);
+        List<Recipe> all = search("SELECT * FROM Recipe");
+        all.removeAll(with);
+        return all;
+    }
+
+    public List<Recipe> userAllergen(List<String> allergen){
+        List<Recipe> names = allergenSearch(allergen);
+        for(int i = 0; i < names.size(); i++){
+            if(names.get(i).getUser() != user){
+                names.remove(i);
+                i--;
+            }
+        }
+        return names;
     }
 
 
+    /*public int editRecipe(int recipeID, String name, String descr, String pic, char meal, int time, int servings, int rate, String instr, List<String> ing, List<Integer> amount, List<String> measure, List<String> ut){
+        try{
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            Statement add = reservationConn.createStatement();
+            String update = String.format("DELETE FROM %sRecipe(ID, name, description, picture, meal, timeCook, servings, avgRate, instructions) WHERE ID = '%s'", user, idx);
+            add.executeUpdate(update);
+            update = String.format("DELETE FROM %sIngredients(recipeID, ingredients, amount, measurement) WHERE recipeID = '%s'", user, idx);
+            add.executeUpdate(update);
+            update = String.format("DELETE FROM %sIngredients(recipeID, utensil) WHERE recipeID = '%s'", user, idx);
+            add.executeUpdate(update);
+            addRecipe2(name,descr,pic,meal,time,servings,rate,instr,ing,amount,measure,ut);
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return 0;
+    }*/
 }
