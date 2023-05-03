@@ -123,7 +123,7 @@ public class Reservation{
         String statement = "SELECT * FROM Recipe WHERE name LIKE '%" + recipeName + "%'";
         return search(statement);
     }
-    public List<Recipe> userName(String recipeName){
+    public List<Recipe> userName(String user, String recipeName){
         List<Recipe> names = nameSearch(recipeName);
         for(int i = 0; i < names.size(); i++){
             if(names.get(i).getUser() != user){
@@ -134,9 +134,19 @@ public class Reservation{
         return names;
     }
 
-    public List<Recipe> userSearch(){
+    public List<Recipe> userSearch(String user){
         String statement = "SELECT * FROM Recipe WHERE user = '" + user + "'";
         return search(statement);
+    }
+
+    public List<Integer> userIDSearch(String user){
+        String statement = "SELECT * FROM Recipe WHERE user = '" + user + "'";
+        List<Integer> ret = new ArrayList<>();
+        List<Recipe> rec= search(statement);
+        for (Recipe recipe : rec) {
+            ret.add(recipe.getID());
+        }
+        return ret;
     }
 
     public List<Recipe> ratingSearch(int rate){
@@ -144,7 +154,7 @@ public class Reservation{
         return search(statement);
     }
 
-    public List<Recipe> userRating(int rating){
+    public List<Recipe> userRating(String user, int rating){
         List<Recipe> names = ratingSearch(rating);
         for(int i = 0; i < names.size(); i++){
             if(names.get(i).getUser() != user){
@@ -160,7 +170,7 @@ public class Reservation{
         return search(statement);
     }
 
-    public List<Recipe> userMeal(char meal){
+    public List<Recipe> userMeal(String user, char meal){
         List<Recipe> names = mealSearch(meal);
         for(int i = 0; i < names.size(); i++){
             if(names.get(i).getUser() != user){
@@ -240,7 +250,7 @@ public class Reservation{
         return recipes;
     }
 
-    public List<Recipe> userIngredient(List<String> ings){
+    public List<Recipe> userIngredient(String user, List<String> ings){
         List<Recipe> names = ingredientSearch(ings);
         for(int i = 0; i < names.size(); i++){
             if(names.get(i).getUser() != user){
@@ -258,7 +268,7 @@ public class Reservation{
         return all;
     }
 
-    public List<Recipe> userAllergen(List<String> allergen){
+    public List<Recipe> userAllergen(String user, List<String> allergen){
         List<Recipe> names = allergenSearch(allergen);
         for(int i = 0; i < names.size(); i++){
             if(names.get(i).getUser() != user){
