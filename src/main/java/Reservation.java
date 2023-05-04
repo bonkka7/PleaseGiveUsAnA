@@ -51,11 +51,47 @@ public class Reservation{
         return 2;
     }
 
-    public int addRecipe(String name, String descr, String pic, char meal, int time, int servings, String instr, List<String> ing, List<Integer> amount, List<String> measure, List<String> ut) throws SQLException {
+    public int addRecipe(String user, String name, String descr, String pic, char meal, int time, int servings, String instr, List<String> ing, List<Integer> amount, List<String> measure, List<String> ut) throws SQLException {
+        int x = 1;
         try{
             reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
             Statement add = reservationConn.createStatement();
-            String update = String.format("INSERT INTO Recipe(ID, user, name, description, picture, meal, timeCook, servings, avgRate, instructions) VALUES (%d, '%s', '%s', '%s', '%s', '%c', %d, %d, %d, '%s')", idx, user, name, descr, pic, meal, time, servings, 0, instr);
+            String findUser = "SELECT password, idx FROM Users WHERE username = '" + user + "'";
+            Statement userFind = reservationConn.createStatement();
+            ResultSet res = userFind.executeQuery(findUser);
+            int idx = 0;
+            if(res.next()) {
+                idx = res.getInt("idx");
+            }
+            x = addRecipe2(idx,user,name,descr,pic,meal,time,servings,0,instr,ing,amount,measure,ut);
+            idx++;
+            String update = "UPDATE Users SET idx = " + idx + " WHERE username = '" + user + "'";
+            add.executeUpdate(update);
+            add.close();
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return x; //couldn't add
+    }
+
+    public int editRecipe(int recipeID, String user, String name, String descr, String pic, char meal, int time, int servings, int rate, String instr, List<String> ing, List<Integer> amount, List<String> measure, List<String> ut) throws SQLException {
+        try{
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            Statement add = reservationConn.createStatement();
+            String update = String.format("DELETE FROM Recipe(ID, user, name, description, picture, meal, timeCook, servings, avgRate, instructions) WHERE ID = %d AND user = '%s'", recipeID,user);
+            add.executeUpdate(update);
+            add.close();
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return addRecipe2(recipeID,user,name,descr,pic,meal,time,servings,rate,instr,ing,amount,measure,ut);
+    }
+
+    public int addRecipe2(int idx, String user, String name, String descr, String pic, char meal, int time, int servings, int rate, String instr, List<String> ing, List<Integer> amount, List<String> measure, List<String> ut) throws SQLException {
+        try{
+            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
+            Statement add = reservationConn.createStatement();
+            String update = String.format("INSERT INTO Recipe(ID, user, name, description, picture, meal, timeCook, servings, avgRate, instructions) VALUES (%d, '%s', '%s', '%s', '%s', '%c', %d, %d, %d, '%s')", idx, user, name, descr, pic, meal, time, servings, rate, instr);
             add.executeUpdate(update);
             for(int x = 0; x < ing.size(); x++){
                 update = String.format("INSERT INTO Ingredients(recipeID, user, ingredients, amount, measurement) VALUES (%d, '%s', '%s', %d, '%s')", idx, user, ing.get(x), amount.get(x), measure.get(x));
@@ -65,9 +101,6 @@ public class Reservation{
                 update = String.format("INSERT INTO Utensils(recipeID, user, utensil) VALUES (%d, '%s', '%s')", idx, user, s);
                 add.executeUpdate(update);
             }
-            idx++;
-            update = "UPDATE Users SET idx = " + idx + " WHERE username = '" + user + "'";
-            add.executeUpdate(update);
             add.close();
             return 0; //added fine
         }catch(SQLException e){
@@ -76,7 +109,7 @@ public class Reservation{
         return 1; //couldn't add
     }
 
-    public int deleteRecipe(int recipeID){
+    public int deleteRecipe(int recipeID, String user){
         try{
             reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
             Statement add = reservationConn.createStatement();
@@ -92,11 +125,11 @@ public class Reservation{
     }
 
     //doesn't work
-    public int addReview(int id, int rate, String review){
+    public int addReview(int id, String user, int rate, String review){
         try{
             reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
             Statement add = reservationConn.createStatement();
-            String update = "INSERT INTO Review(recipeID, user, rating, review) VALUES (" + idx + ", '" + user + "', " + rate + ", '" + review + "')";
+            String update = "INSERT INTO Review(recipeID, user, rating, review) VALUES (" + id + ", '" + user + "', " + rate + ", '" + review + "')";
             add.executeUpdate(update);
             update = "SELECT rating FROM Review WHERE recipeID = " + id + " AND user = '" + user + "'";
             int count = 0;
@@ -279,21 +312,4 @@ public class Reservation{
         return names;
     }
 
-
-    /*public int editRecipe(int recipeID, String name, String descr, String pic, char meal, int time, int servings, int rate, String instr, List<String> ing, List<Integer> amount, List<String> measure, List<String> ut){
-        try{
-            reservationConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pguaa", "root", "756337");
-            Statement add = reservationConn.createStatement();
-            String update = String.format("DELETE FROM %sRecipe(ID, name, description, picture, meal, timeCook, servings, avgRate, instructions) WHERE ID = '%s'", user, idx);
-            add.executeUpdate(update);
-            update = String.format("DELETE FROM %sIngredients(recipeID, ingredients, amount, measurement) WHERE recipeID = '%s'", user, idx);
-            add.executeUpdate(update);
-            update = String.format("DELETE FROM %sIngredients(recipeID, utensil) WHERE recipeID = '%s'", user, idx);
-            add.executeUpdate(update);
-            addRecipe2(name,descr,pic,meal,time,servings,rate,instr,ing,amount,measure,ut);
-        }catch(SQLException e){
-            System.out.println(e.getMessage());
-        }
-        return 0;
-    }*/
 }

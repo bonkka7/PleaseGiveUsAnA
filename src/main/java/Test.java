@@ -76,7 +76,7 @@ public class Test {
 
 
         //doesn't work. have to fix :(
-        /*int x = using.addReview(3, 2, "It was alright but it was not very flavorful");
+        /*int x = using.addReview(3, "bonkka", 2, "It was alright but it was not very flavorful");
         System.out.println(x);*/
     }
 }
