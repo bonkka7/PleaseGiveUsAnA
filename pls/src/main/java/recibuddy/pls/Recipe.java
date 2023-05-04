@@ -23,7 +23,7 @@ public class Recipe {
     private String description;
 
     @Column(name = "cookTime")
-    private String cookTime;
+    private int cookTime;
 
     @Column(name = "instructions")
     private String instructions;
@@ -40,7 +40,7 @@ public class Recipe {
     // constructor, getters, and setters
     public Recipe() {}
 
-    public Recipe(String[] ingredients, String[] utensils, String description, String cookTime, String instructions, int servingSize, String imgURL, String meal) {
+    public Recipe(String[] ingredients, String[] utensils, String description, int cookTime, String instructions, int servingSize, String imgURL, String meal) {
         this.ingredients = ingredients;
         this.utensils = utensils;
         this.description = description;
@@ -51,8 +51,7 @@ public class Recipe {
         this.meal = meal;
     }
 
-    // getters and setters
-    //I'mma have to make ingredients and utensils arrays rather than singular strings.
+    //Getters and setters
     public Long getId() {
         return id;
     }
@@ -60,6 +59,7 @@ public class Recipe {
         this.id = id;
     }
 
+    //Update to Ingredients class? Same for utensil
     public String[] getIngredients() {
         return ingredients;
     }
@@ -88,10 +88,10 @@ public class Recipe {
         this.instructions = instructions;
     }
 
-    public String getCookTime() {
+    public int getCookTime() {
         return cookTime;
     }
-    public void setCookTime(String cookTime) {
+    public void setCookTime(int cookTime) {
         this.cookTime = cookTime;
     }
 
